@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useQuery, QueryFunctionContext } from "react-query";
 import "../index.css";
 import IconButton from "@mui/material/IconButton";
-import { ArrowUpward, Padding } from "@mui/icons-material";
-import { ArrowDownward } from "@mui/icons-material";
+import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import CloseIcon from "@mui/icons-material/Close";
@@ -13,9 +12,9 @@ const Test = () => {
   const [searching, setSearching] = useState("");
   const pageSize = 10;
   const [sorting, setSorting] = useState<"asc" | "desc">("asc");
-
+  const [sortBy, setSortBy] = useState<"rating" | "title">("rating");
   const { isLoading, data, error } = useQuery(
-    ["products", page, searching, sorting],
+    ["products", page, searching, sorting, sortBy],
     apiCall,
     {
       keepPreviousData: true,
@@ -24,26 +23,31 @@ const Test = () => {
 
   async function apiCall({
     queryKey,
-  }: QueryFunctionContext<[string, number, string, "asc" | "desc"]>) {
+  }: QueryFunctionContext<
+    [string, number, string, "asc" | "desc", "rating" | "title"]
+  >) {
     const page = queryKey[1];
     const searching = queryKey[2];
     const sorting = queryKey[3];
+    const sortBy = queryKey[4];
     const url = `https://dummyjson.com/products?limit=${pageSize}&skip=${
       (page - 1) * pageSize
     }`;
     try {
       const res = await fetch(url);
       const data = await res.json();
-      const filterdData = searching
+      const filteredData = searching
         ? data.products.filter((product: any) =>
             product.title.toLowerCase().includes(searching.toLowerCase())
           )
         : data.products;
-      const sortedData = filterdData.sort((a: any, b: any) => {
-        if (sorting === "asc") {
-          return a.rating - b.rating;
+      const sortedData = filteredData.sort((a: any, b: any) => {
+        if (sortBy === "rating") {
+          return sorting === "asc" ? a.rating - b.rating : b.rating - a.rating;
         } else {
-          return b.rating - a.rating;
+          return sorting === "asc"
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title);
         }
       });
 
@@ -59,8 +63,13 @@ const Test = () => {
     }
   }
 
-  const toggleSort = () => {
-    setSorting((prevSort) => (prevSort === "asc" ? "desc" : "asc"));
+  const toggleSort = (field: "rating" | "title") => {
+    if (sortBy === field) {
+      setSorting((prevSort) => (prevSort === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSorting("asc");
+    }
   };
 
   const handlePageChange = (
@@ -101,7 +110,12 @@ const Test = () => {
         {searching && (
           <IconButton
             onClick={clearSearch}
-            style={{ position: "absolute", right: 0, top: "50%" }}
+            style={{
+              position: "absolute",
+              right: 0,
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
           >
             <CloseIcon />
           </IconButton>
@@ -114,12 +128,25 @@ const Test = () => {
           <thead>
             <tr>
               <th>ID</th>
-              <th>TITLE</th>
+              <th>
+                TITLE
+                <IconButton onClick={() => toggleSort("title")}>
+                  {sortBy === "title" && sorting === "asc" ? (
+                    <ArrowUpward />
+                  ) : (
+                    <ArrowDownward />
+                  )}
+                </IconButton>
+              </th>
               <th>CATEGORY</th>
               <th>
                 RATING
-                <IconButton onClick={toggleSort}>
-                  {sorting === "asc" ? <ArrowUpward /> : <ArrowDownward />}
+                <IconButton onClick={() => toggleSort("rating")}>
+                  {sortBy === "rating" && sorting === "asc" ? (
+                    <ArrowUpward />
+                  ) : (
+                    <ArrowDownward />
+                  )}
                 </IconButton>
               </th>
             </tr>

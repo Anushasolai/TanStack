@@ -12,6 +12,7 @@ h1 {
   color: #2c3e50;
 }
 
+
 input[type="text"] {
   width: 300px;
   padding: 10px 40px 10px 15px;
@@ -30,6 +31,7 @@ input[type="text"]:focus {
 input[type="text"]::placeholder {
   color: #aaa;
 }
+
 
 input + button {
   color: #fff;
@@ -52,6 +54,7 @@ button:hover {
   color: white;
   border-radius: 50%;
 }
+
 
 table {
   width: 100%;
@@ -106,6 +109,7 @@ thead th {
   background-color: #3498db !important;
   color: white !important;
 }
+
 
 .MuiIconButton-root {
   color: #2c3e50;
